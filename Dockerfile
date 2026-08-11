@@ -1,15 +1,28 @@
-# Frontend Dockerfile (Vite/React)
-FROM node:20
+# Stage 1: Build
+FROM node:20 AS builder
 
 WORKDIR /app
-
-# Copier uniquement les fichiers nécessaires
 COPY package*.json ./
 RUN npm install
 
-# Copier tout le code
 COPY . .
+RUN npm run build
 
-EXPOSE 8080
+# Stage 2: Serve with nginx
+FROM nginx:alpine
 
-CMD ["npm", "run", "dev", "--", "--host"]
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Support React Router (SPA fallback)
+RUN echo 'server { \
+  listen 80; \
+  root /usr/share/nginx/html; \
+  index index.html; \
+  location / { \
+    try_files $uri $uri/ /index.html; \
+  } \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

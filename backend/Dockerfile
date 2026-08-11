@@ -1,15 +1,15 @@
-# Backend Dockerfile (Node.js ESM)
+# Backend Dockerfile (Node.js ESM) — Production
 FROM node:20
 
 WORKDIR /app
 
 # Copier package.json et installer les dépendances
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 
 # Copier tout le backend
 COPY . .
 
 EXPOSE 5000
 
-CMD ["npm", "run", "dev"]
+CMD ["node", "index.js"]
